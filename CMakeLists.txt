@@ -88,6 +88,9 @@ option(TARGET_SPIRV "Include SPIR-V target" OFF)
 # Import dependencies
 ##
 
+set(THREADS_PREFER_PTHREAD_FLAG YES)
+find_package(Threads REQUIRED)
+
 add_subdirectory(dependencies)
 
 ##

@@ -1,12 +1,4 @@
 ##
-# Standard CMake find-module dependencies
-##
-
-set(THREADS_PREFER_PTHREAD_FLAG YES)
-find_package(Threads REQUIRED)
-set_target_properties(Threads::Threads PROPERTIES IMPORTED_GLOBAL TRUE)
-
-##
 # Third-party dependencies in their own subdirectories
 ##
 
