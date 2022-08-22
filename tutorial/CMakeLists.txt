@@ -1,6 +1,8 @@
 configure_file(images/gray.png images/gray.png COPYONLY)
 configure_file(images/rgb.png images/rgb.png COPYONLY)
 
+find_package(OpenMP)
+
 function(add_tutorial source_file)
     set(options WITH_IMAGE_IO WITH_OPENMP)
     set(oneValueArgs)
