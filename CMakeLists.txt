@@ -81,9 +81,6 @@ else ()
     set(Halide_ANY_SANITIZERS_ENABLED 0)
 endif ()
 
-# Enable the SPIR-V target if requested (must declare before processing dependencies)
-option(TARGET_SPIRV "Include SPIR-V target" OFF)
-
 ##
 # Import dependencies
 ##
@@ -104,6 +101,12 @@ find_package(JPEG)
 find_package(PNG)
 
 add_subdirectory(dependencies)
+
+# Enable the SPIR-V target if requested
+option(TARGET_SPIRV "Include SPIR-V target" OFF)
+if (TARGET_SPIRV)
+    add_subdirectory(dependencies/spirv)
+endif()
 
 ##
 # Add source directories
