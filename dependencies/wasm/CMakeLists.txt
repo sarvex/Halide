@@ -143,25 +143,9 @@ function(add_wasm_halide_test TARGET)
         return()
     endif ()
 
+    find_package(NodeJS 16.13 REQUIRED)
+
     add_halide_test("${TARGET}"
                     GROUPS ${args_GROUPS}
-                    COMMAND ${NODE_JS_EXECUTABLE} "${TARGET}.js")
+                    COMMAND NodeJS::Interpreter "${TARGET}.js")
 endfunction()
-
-function(find_node_js)
-    find_program(NODE_JS_EXECUTABLE node nodejs REQUIRED)
-
-    execute_process(COMMAND "${NODE_JS_EXECUTABLE}" --version
-                    OUTPUT_VARIABLE NODE_JS_VERSION_RAW
-                    OUTPUT_STRIP_TRAILING_WHITESPACE)
-    string(REPLACE "v" "" NODE_JS_VERSION ${NODE_JS_VERSION_RAW})
-
-    if (NODE_JS_VERSION VERSION_LESS "16.13")
-        message(FATAL_ERROR "Halide requires Node v16.13 or later, but found ${NODE_JS_VERSION_RAW} at ${NODE_JS_EXECUTABLE}. Please set NODE_JS_EXECUTABLE on the CMake command line.")
-    endif ()
-endfunction()
-
-if (Halide_TARGET MATCHES "wasm")
-    # Check and warn up front if a suitable Node.js isn't found
-    find_node_js()
-endif ()
