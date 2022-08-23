@@ -95,7 +95,6 @@ function(add_wasm_executable TARGET)
         -std=c++17
         -Wall
         -Wcast-qual
-        -Werror
         -Wignored-qualifiers
         -Wno-comment
         -Wno-psabi
@@ -103,6 +102,7 @@ function(add_wasm_executable TARGET)
         -Wno-unused-function
         -Wsign-compare
         -Wsuggest-override
+        -Wno-limited-postlink-optimizations
         -s ASSERTIONS=1
         -s ALLOW_MEMORY_GROWTH=1
         -s ENVIRONMENT=node
