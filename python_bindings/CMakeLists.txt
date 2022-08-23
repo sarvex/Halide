@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.22...3.23)
 project(Halide_Python)
 
 include(CMakeDependentOption)
+include(GNUInstallDirs)
 
 ##
 # Project options

@@ -1,6 +1,3 @@
-include(GNUInstallDirs)
-include(CMakePackageConfigHelpers)
-
 ##
 # Custom locations
 ##

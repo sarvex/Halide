@@ -93,8 +93,6 @@ add_dependencies(Halide_Python Halide_Python_sources)
 # Packaging
 ##
 
-include(CMakeDependentOption)
-include(GNUInstallDirs)
 
 set(Halide_INSTALL_PYTHONDIR "${CMAKE_INSTALL_LIBDIR}/python3/site-packages"
     CACHE STRING "Path to the Python site-packages folder")

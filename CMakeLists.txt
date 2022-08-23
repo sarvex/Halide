@@ -11,12 +11,15 @@ enable_testing()
 ##
 
 # Import useful standard modules
-include(CMakeDependentOption)
 include(CheckCXXSymbolExists)
+include(CMakeDependentOption)
+include(CMakePackageConfigHelpers)
+include(GNUInstallDirs)
 
 # Make our custom helpers available throughout the project via include().
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 include(HalideGeneratorHelpers)
+include(TargetExportScript)
 
 # Build Halide as a shared lib by default, but still honor command-line settings.
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)

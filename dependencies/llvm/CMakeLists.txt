@@ -2,7 +2,6 @@
 # Find LLVM and check the version.
 ##
 
-include(CMakeDependentOption)
 include(BundleStatic)
 
 # Fallback configurations for weirdly built LLVMs

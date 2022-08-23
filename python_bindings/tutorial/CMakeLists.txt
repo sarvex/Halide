@@ -79,8 +79,6 @@ endif ()
 # Packaging
 ##
 
-include(GNUInstallDirs)
-
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION ${CMAKE_INSTALL_DOCDIR}/tutorial-python
         COMPONENT Halide_Documentation

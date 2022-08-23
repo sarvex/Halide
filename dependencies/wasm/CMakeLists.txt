@@ -1,5 +1,4 @@
 include(FetchContent)
-include(CMakeDependentOption)
 
 cmake_dependent_option(WITH_WABT "Include WABT Interpreter for WASM testing" ON "TARGET_WEBASSEMBLY" OFF)
 cmake_dependent_option(WITH_V8 "Include V8 for WASM testing" OFF "TARGET_WEBASSEMBLY" OFF)
