@@ -99,17 +99,27 @@ v8](https://v8.dev/docs/embed). The process for Halide is summarized below.
     $ mkdir ~/v8 && cd ~/v8
     $ fetch v8
     $ cd ~/v8/v8
-    $ git checkout origin/9.8.177
+    $ git checkout origin/10.7.16
     ```
 - Create a build configuration: `tools/dev/v8gen.py x64.release.sample`
-- Turn off pointer compression: `echo 'v8_enable_pointer_compression = false' >> out.gn/x64.release.sample/args.gn`
-- Disable the GDB-JIT interface (conflicts with LLVM): `echo 'v8_enable_gdbjit = false' >> out.gn/x64.release.sample/args.gn`
-- Build the static library: `autoninja -C out.gn/x64.release.sample v8_monolith`
+    - **Note:** the `.sample` part of this is important: it is the name of a
+      build configuration provided by V8 that is ready for embedding
+- Run `gn args out.gn/x64.release.sample` and ensure these settings are set as follows:
+    - `is_component_build = false` - required by `v8_monolithic`
+    - `use_custom_libcxx = false` - use the standard library from the environment
+    - `v8_monolithic = true` - to build the single static library for embedders
+    - `v8_use_external_startup_data = false` - required by `v8_monolithic`
+- Some versions of V8 might need the following additional arguments:
+    - `v8_enable_pointer_compression = false` - sometimes fixes build errors
+    - `v8_enable_sandbox = false` - required by `v8_enable_pointer_compression` (v10+ only)
+    - `v8_enable_gdbjit = false` - to disable the GDB-JIT interface (conflicts with some LLVMs)
+
+- Build the static library: `ninja -C out.gn/x64.release.sample v8_monolith`
 
 With V8 built, we can pass the CMake options:
 
-- `V8_INCLUDE_PATH`, path to V8 includes, e.g. `$HOME/v8/v8/include`
-- `V8_LIB_PATH`, path to V8 static library, e.g. `$HOME/v8/v8/out.gn/x64.release.sample/obj/libv8_monolith.a`
+- `V8_INCLUDE_DIR`, path to V8 includes, e.g. `$HOME/v8/v8/include`
+- `V8_LIBRARY`, path to V8 static library, e.g. `$HOME/v8/v8/out.gn/x64.release.sample/obj/libv8_monolith.a`
 
 An example to configure Halide with V8 support, build and run an example test:
 
@@ -120,15 +130,14 @@ $ export HL_JIT_TARGET=${HL_TARGET}
 $ cmake -G Ninja \
       -DWITH_WABT=OFF \
       -DWITH_V8=ON \
-      -DV8_INCLUDE_PATH=$HOME/v8/v8/include \
-      -DV8_LIB_PATH=$HOME/v8/v8/out.gn/x64.release.sample/obj/libv8_monolith.a \
+      -DV8_INCLUDE_DIR=$HOME/v8/v8/include \
+      -DV8_LIBRARY=$HOME/v8/v8/out.gn/x64.release.sample/obj/libv8_monolith.a \
       -DHalide_TARGET=${HL_TARGET} \
-      /* other cmake settings here as appropriate */
+      # other cmake settings here as appropriate
 
 $ cmake --build .
-$ ctest -L "correctness|generator" -j
+$ ctest -L "correctness|generator" -j $(nproc)
 ```
-
 
 # To Use Halide For WebAssembly:
 
@@ -136,7 +145,7 @@ $ ctest -L "correctness|generator" -j
     (`"all"`) then it's already present, but otherwise, add it explicitly:
 
 ```
--DLLVM_TARGETS_TO_BUILD="X86;ARM;NVPTX;AArch64;Mips;PowerPC;Hexagon;WebAssembly
+-DLLVM_TARGETS_TO_BUILD="X86;ARM;NVPTX;AArch64;Mips;PowerPC;Hexagon;WebAssembly"
 ```
 
 ## Enabling wasm JIT
@@ -145,7 +154,7 @@ If you want to run `test_correctness` and other interesting parts of the Halide
 test suite (and you almost certainly will), you'll need to ensure that LLVM is
 built with wasm-ld:
 
--   Ensure that you have lld in LVM_ENABLE_PROJECTS:
+-   Ensure that you have lld in LLVM_ENABLE_PROJECTS:
 
 ```
 cmake -DLLVM_ENABLE_PROJECTS="clang;lld" ...
