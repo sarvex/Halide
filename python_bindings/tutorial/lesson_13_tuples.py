@@ -62,7 +62,7 @@ def main():
 
     # It is also possible to represent a collection of values as a
     # collection of Funcs:
-    func_array = [hl.Func() for i in range(3)]
+    func_array = [hl.Func() for _ in range(3)]
     func_array[0][x, y] = x + y
     func_array[1][x, y] = hl.sin(x)
     func_array[2][x, y] = hl.cos(y)
@@ -80,36 +80,24 @@ def main():
     multi_valued = hl.Func("multi_valued")
     multi_valued[x, y] = (x + y, hl.sin(x * y))
 
-    # Realizing a tuple-valued hl.Func returns a collection of
-    # Buffers. We call this a Realization. It's equivalent to a
-    # std::vector of hl.Buffer/Image objects:
-    if True:
-        im1, im2 = multi_valued.realize([80, 60])
-        assert im1.type() == hl.Int(32)
-        assert im2.type() == hl.Float(32)
-        assert im1[30, 40] == 30 + 40
-        assert np.isclose(im2[30, 40], math.sin(30 * 40))
+    im1, im2 = multi_valued.realize([80, 60])
+    assert im1.type() == hl.Int(32)
+    assert im2.type() == hl.Float(32)
+    assert im1[30, 40] == 30 + 40
+    assert np.isclose(im2[30, 40], math.sin(30 * 40))
 
-    # You can also pass a tuple of pre-allocated buffers to realize()
-    # rather than having new ones created. (The Buffers must have the correct
-    # types and have identical sizes.)
-    if True:
-        im1, im2 = hl.Buffer(hl.Int(32), [80, 60]), hl.Buffer(hl.Float(32), [80, 60])
-        multi_valued.realize((im1, im2))
-        assert im1[30, 40] == 30 + 40
-        assert np.isclose(im2[30, 40], math.sin(30 * 40))
+    im1, im2 = hl.Buffer(hl.Int(32), [80, 60]), hl.Buffer(hl.Float(32), [80, 60])
+    multi_valued.realize((im1, im2))
+    assert im1[30, 40] == 30 + 40
+    assert np.isclose(im2[30, 40], math.sin(30 * 40))
 
-    # All Tuple elements are evaluated together over the same domain
-    # in the same loop nest, but stored in distinct allocations. The
-    # equivalent C++ code to the above is:
-    if True:
-        multi_valued_0 = np.empty((80 * 60), dtype=np.int32)
-        multi_valued_1 = np.empty((80 * 60), dtype=np.int32)
+    multi_valued_0 = np.empty((80 * 60), dtype=np.int32)
+    multi_valued_1 = np.empty((80 * 60), dtype=np.int32)
 
-        for yy in range(80):
-            for xx in range(60):
-                multi_valued_0[xx + 60 * yy] = xx + yy
-                multi_valued_1[xx + 60 * yy] = math.sin(xx * yy)
+    for yy in range(80):
+        for xx in range(60):
+            multi_valued_0[xx + 60 * yy] = xx + yy
+            multi_valued_1[xx + 60 * yy] = math.sin(xx * yy)
 
     # When compiling ahead-of-time, a Tuple-valued hl.Func evaluates
     # into multiple distinct output halide_buffer_t structs. These appear in
@@ -139,159 +127,139 @@ def main():
     consumer = hl.Func()
     consumer[x, y] = (integer_part + 10, floating_part + 10.0)
 
-    # Tuple reductions.
-    if True:
-        # Tuples are particularly useful in reductions, as they allow
-        # the reduction to maintain complex state as it walks along
-        # its domain. The simplest example is an argmax.
+    # Tuples are particularly useful in reductions, as they allow
+    # the reduction to maintain complex state as it walks along
+    # its domain. The simplest example is an argmax.
 
-        # First we create an Image to take the argmax over.
-        input_func = hl.Func()
-        input_func[x] = hl.sin(x)
-        input = input_func.realize([100])
-        assert input.type() == hl.Float(32)
+    # First we create an Image to take the argmax over.
+    input_func = hl.Func()
+    input_func[x] = hl.sin(x)
+    input = input_func.realize([100])
+    assert input.type() == hl.Float(32)
 
-        # Then we defined a 2-valued Tuple which tracks the maximum value
-        # its index.
-        arg_max = hl.Func()
+    # Then we defined a 2-valued Tuple which tracks the maximum value
+    # its index.
+    arg_max = hl.Func()
 
-        # Pure definition.
-        # (using [()] for zero-dimensional Funcs is a convention of this python interface)
-        arg_max[()] = (0, input[0])
+    # Pure definition.
+    # (using [()] for zero-dimensional Funcs is a convention of this python interface)
+    arg_max[()] = (0, input[0])
 
-        # Update definition.
-        r = hl.RDom([(1, 99)])
-        old_index = arg_max[()][0]
-        old_max = arg_max[()][1]
-        new_index = hl.select(old_max > input[r], r, old_index)
-        new_max = hl.max(input[r], old_max)
-        arg_max[()] = (new_index, new_max)
+    # Update definition.
+    r = hl.RDom([(1, 99)])
+    old_index = arg_max[()][0]
+    old_max = arg_max[()][1]
+    new_index = hl.select(old_max > input[r], r, old_index)
+    new_max = hl.max(input[r], old_max)
+    arg_max[()] = (new_index, new_max)
 
-        # The equivalent C++ is:
-        arg_max_0 = 0
-        arg_max_1 = float(input[0])
-        for r in range(1, 100):
-            old_index = arg_max_0
-            old_max = arg_max_1
-            new_index = r if (old_max > input[r]) else old_index
-            new_max = max(input[r], old_max)
-            # In a tuple update definition, all loads and computation
-            # are done before any stores, so that all Tuple elements
-            # are updated atomically with respect to recursive calls
-            # to the same hl.Func.
-            arg_max_0 = new_index
-            arg_max_1 = new_max
+    # The equivalent C++ is:
+    arg_max_0 = 0
+    arg_max_1 = float(input[0])
+    for r in range(1, 100):
+        old_index = arg_max_0
+        old_max = arg_max_1
+        new_index = r if (old_max > input[r]) else old_index
+        new_max = max(input[r], old_max)
+        # In a tuple update definition, all loads and computation
+        # are done before any stores, so that all Tuple elements
+        # are updated atomically with respect to recursive calls
+        # to the same hl.Func.
+        arg_max_0 = new_index
+        arg_max_1 = new_max
 
-        # Let's verify that the Halide and C++ found the same maximum
-        # value and index.
-        if True:
-            r0, r1 = arg_max.realize()
+    r0, r1 = arg_max.realize()
 
-            assert r0.type() == hl.Int(32)
-            assert r1.type() == hl.Float(32)
-            assert arg_max_0 == r0[()]
-            assert np.isclose(arg_max_1, r1[()])
+    assert r0.type() == hl.Int(32)
+    assert r1.type() == hl.Float(32)
+    assert arg_max_0 == r0[()]
+    assert np.isclose(arg_max_1, r1[()])
 
-        # Halide provides argmax and hl.argmin as built-in reductions
-        # similar to sum, product, maximum, and minimum. They return
-        # a Tuple consisting of the point in the reduction domain
-        # corresponding to that value, and the value itself. In the
-        # case of ties they return the first value found. We'll use
-        # one of these in the following section.
+    class Complex:
 
-    # Tuples for user-defined types.
-    if True:
-        # Tuples can also be a convenient way to represent compound
-        # objects such as complex numbers. Defining an object that
-        # can be converted to and from a Tuple is one way to extend
-        # Halide's type system with user-defined types.
-        class Complex:
+        def __init__(self, r, i=None):
+            if type(r) is float and type(i) is float:
+                self.real = hl.Expr(r)
+                self.imag = hl.Expr(i)
+            elif i is not None:
+                self.real = r
+                self.imag = i
+            else:
+                self.real = r[0]
+                self.imag = r[1]
 
-            def __init__(self, r, i=None):
-                if type(r) is float and type(i) is float:
-                    self.real = hl.Expr(r)
-                    self.imag = hl.Expr(i)
-                elif i is not None:
-                    self.real = r
-                    self.imag = i
-                else:
-                    self.real = r[0]
-                    self.imag = r[1]
+        def as_tuple(self):
+            "Convert to a Tuple"
+            return (self.real, self.imag)
 
-            def as_tuple(self):
-                "Convert to a Tuple"
-                return (self.real, self.imag)
+        def __add__(self, other):
+            "Complex addition"
+            return Complex(self.real + other.real, self.imag + other.imag)
 
-            def __add__(self, other):
-                "Complex addition"
-                return Complex(self.real + other.real, self.imag + other.imag)
+        def __mul__(self, other):
+            "Complex multiplication"
+            return Complex(self.real * other.real - self.imag * other.imag,
+                           self.real * other.imag + self.imag * other.real)
 
-            def __mul__(self, other):
-                "Complex multiplication"
-                return Complex(self.real * other.real - self.imag * other.imag,
-                               self.real * other.imag + self.imag * other.real)
+        def __getitem__(self, idx):
+            return (self.real, self.imag)[idx]
 
-            def __getitem__(self, idx):
-                return (self.real, self.imag)[idx]
+        def __len__(self):
+            return 2
 
-            def __len__(self):
-                return 2
+        def magnitude(self):
+            "Complex magnitude"
+            return (self.real * self.real) + (self.imag * self.imag)
 
-            def magnitude(self):
-                "Complex magnitude"
-                return (self.real * self.real) + (self.imag * self.imag)
+        # Other complex operators would go here. The above are
+        # sufficient for this example.
 
-            # Other complex operators would go here. The above are
-            # sufficient for this example.
+    # Let's use the Complex struct to compute a Mandelbrot set.
+    mandelbrot = hl.Func()
 
-        # Let's use the Complex struct to compute a Mandelbrot set.
-        mandelbrot = hl.Func()
+    # The initial complex value corresponding to an x, y coordinate
+    # in our hl.Func.
+    initial = Complex(x / 15.0 - 2.5, y / 6.0 - 2.0)
 
-        # The initial complex value corresponding to an x, y coordinate
-        # in our hl.Func.
-        initial = Complex(x / 15.0 - 2.5, y / 6.0 - 2.0)
+    # Pure definition.
+    t = hl.Var("t")
+    mandelbrot[x, y, t] = Complex(0.0, 0.0)
 
-        # Pure definition.
-        t = hl.Var("t")
-        mandelbrot[x, y, t] = Complex(0.0, 0.0)
+    # We'll use an update definition to take 12 steps.
+    r = hl.RDom([(1, 12)])
+    current = Complex(mandelbrot[x, y, r - 1])
 
-        # We'll use an update definition to take 12 steps.
-        r = hl.RDom([(1, 12)])
-        current = Complex(mandelbrot[x, y, r - 1])
+    # The following line uses the complex multiplication and
+    # addition we defined above.
+    mandelbrot[x, y, r] = (Complex(current * current) + initial)
 
-        # The following line uses the complex multiplication and
-        # addition we defined above.
-        mandelbrot[x, y, r] = (Complex(current * current) + initial)
+    # We'll use another tuple reduction to compute the iteration
+    # number where the value first escapes a circle of radius 4.
+    # This can be expressed as an hl.argmin of a boolean - we want
+    # the index of the first time the given boolean expression is
+    # false (we consider false to be less than true).  The argmax
+    # would return the index of the first time the expression is
+    # true.
 
-        # We'll use another tuple reduction to compute the iteration
-        # number where the value first escapes a circle of radius 4.
-        # This can be expressed as an hl.argmin of a boolean - we want
-        # the index of the first time the given boolean expression is
-        # false (we consider false to be less than true).  The argmax
-        # would return the index of the first time the expression is
-        # true.
+    escape_condition = Complex(mandelbrot[x, y, r]).magnitude() < 16.0
+    first_escape = hl.argmin(escape_condition)
+    assert type(first_escape) is tuple
+    # We only want the index, not the value, but hl.argmin returns
+    # both, so we'll index the hl.argmin Tuple expression using
+    # square brackets to get the hl.Expr representing the index.
+    escape = hl.Func()
+    escape[x, y] = first_escape[0]
 
-        escape_condition = Complex(mandelbrot[x, y, r]).magnitude() < 16.0
-        first_escape = hl.argmin(escape_condition)
-        assert type(first_escape) is tuple
-        # We only want the index, not the value, but hl.argmin returns
-        # both, so we'll index the hl.argmin Tuple expression using
-        # square brackets to get the hl.Expr representing the index.
-        escape = hl.Func()
-        escape[x, y] = first_escape[0]
-
-        # Realize the pipeline and print the result as ascii art.
-        result = escape.realize([61, 25])
-        assert result.type() == hl.Int(32)
-        code = " .:-~*={&%#@"
-        for yy in range(result.height()):
-            for xx in range(result.width()):
-                index = result[xx, yy]
-                if index < len(code):
-                    print("%c" % code[index], end="")
-                else:
-                    pass  # is lesson 13 cpp version buggy ?
-            print("")
+    # Realize the pipeline and print the result as ascii art.
+    result = escape.realize([61, 25])
+    assert result.type() == hl.Int(32)
+    code = " .:-~*={&%#@"
+    for yy in range(result.height()):
+        for xx in range(result.width()):
+            index = result[xx, yy]
+            if index < len(code):
+                print("%c" % code[index], end="")
+        print("")
 
     print("Success!")
 

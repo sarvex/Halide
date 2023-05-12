@@ -79,12 +79,6 @@ def test_basics():
     input[x + 1, y]
     input[x, y] + input[x + 1, y]
 
-    if False:
-        aa = blur_x[x, y]
-        bb = blur_x[x, y + 1]
-        aa + bb
-        blur_x[x, y] + blur_x[x, y + 1]
-
     (input[x, y] + input[x + 1, y]) / 2
     blur_x[x, y]
     blur_xx[x, y] = input[x, y]
@@ -286,8 +280,8 @@ def test_int_promotion():
 def test_vector_tile():
     # Test Func.tile() and Stage.tile() with vector arguments
     x, y, z = [hl.Var(c) for c in "xyz"]
-    xi, yi, zi = [hl.Var(c + "i") for c in "xyz"]
-    xo, yo, zo = [hl.Var(c + "o") for c in "xyz"]
+    xi, yi, zi = [hl.Var(f"{c}i") for c in "xyz"]
+    xo, yo, zo = [hl.Var(f"{c}o") for c in "xyz"]
     f = hl.Func("f")
     g = hl.Func("g")
     h = hl.Func("h")
@@ -325,7 +319,7 @@ def test_bool_conversion():
     x = hl.Var("x")
     f = hl.Func("f")
     f[x] = x
-    s = bool(True)
+    s = True
     # Verify that this doesn't fail with 'Argument passed to specialize must be of type bool'
     f.compute_root().specialize(True)
 

@@ -59,10 +59,10 @@ class TestAdd(unittest.TestCase):
             self.a.requires_grad = True
             self.b.requires_grad = True
 
-            for i in range(100):
+            for _ in range(100):
                 output = add(self.a, self.b).sum()
                 output.backward()
-            
+
             # Inputs are float, the gradient checker wants double inputs and
             # will issue a warning.
             warnings.filterwarnings(

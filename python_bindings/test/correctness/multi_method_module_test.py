@@ -38,7 +38,7 @@ def test_aot_call_failure_throws_exception():
     except RuntimeError as e:
         assert "Halide Runtime Error: -3" in str(e), str(e)
     else:
-        assert False, "Did not see expected exception, saw: " + str(e)
+        assert False, f"Did not see expected exception, saw: {str(e)}"
 
 
 if __name__ == "__main__":

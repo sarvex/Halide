@@ -169,7 +169,7 @@ def test_bufferinfo_sharing():
     a0 = np.ones((20000, 30000), dtype=np.int32)
     b0 = hl.Buffer(a0)
     del a0
-    for i in range(200):
+    for _ in range(200):
         b1 = hl.Buffer(b0)
         b0 = b1
         b1 = None

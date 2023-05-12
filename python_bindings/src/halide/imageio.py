@@ -20,13 +20,12 @@ def copy_to_interleaved(im):
     an unchanged copy of the input. Note that this call will always return
     a copy, leaving the input unchanged."""
     mv = memoryview(im)
-    if mv.ndim == 3 and not is_interleaved(mv):
-        # We are presumably planar, in (c, y, x) order; we need (y, x, c) order
-        mv = np.moveaxis(mv, 0, 2)
-        mv = np.copy(mv, order="F")
-        return mv
-    else:
+    if mv.ndim != 3 or is_interleaved(mv):
         return im
+    # We are presumably planar, in (c, y, x) order; we need (y, x, c) order
+    mv = np.moveaxis(mv, 0, 2)
+    mv = np.copy(mv, order="F")
+    return mv
 
 
 def copy_to_planar(im):
@@ -35,14 +34,13 @@ def copy_to_planar(im):
     an unchanged copy of the input. Note that this call will always return
     a copy, leaving the input unchanged."""
     mv = memoryview(im)
-    if is_interleaved(mv):
-        # Interleaved will be in (y, x, c) order; we want (c, y, x) order
-        # (which hl.Buffer will reverse into x, y, c order)
-        mv = np.moveaxis(mv, 2, 0)
-        mv = np.copy(mv, order="C")
-        return mv
-    else:
+    if not is_interleaved(mv):
         return im
+    # Interleaved will be in (y, x, c) order; we want (c, y, x) order
+    # (which hl.Buffer will reverse into x, y, c order)
+    mv = np.moveaxis(mv, 2, 0)
+    mv = np.copy(mv, order="C")
+    return mv
 
 
 def imread(uri, format=None, **kwargs):

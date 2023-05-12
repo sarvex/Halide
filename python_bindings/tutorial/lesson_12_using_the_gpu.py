@@ -197,12 +197,11 @@ class MyPipeline:
 
         # Now take the best of 3 runs for timing.
         best_time = float("inf")
-        for i in range(3):
-
+        for _ in range(3):
             t1 = datetime.now()
 
             # Run the filter 100 times.
-            for j in range(100):
+            for _ in range(100):
                 self.curved.realize(output)
 
             # Force any GPU code to finish by copying the buffer back to the

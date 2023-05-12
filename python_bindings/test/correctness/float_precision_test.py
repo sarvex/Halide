@@ -23,11 +23,9 @@ class AssertWarnsContext:
         self.warnings_manager.__exit__(exc_type, exc_value, tb)
         if exc_type is not None:
             return
-        self.occurred = False
-        for m in self.warnings:
-            if not isinstance(m.message, self.expected):
-                continue
-            self.occurred = True
+        self.occurred = any(
+            isinstance(m.message, self.expected) for m in self.warnings
+        )
 
 
 def test():

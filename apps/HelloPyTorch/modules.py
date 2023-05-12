@@ -37,7 +37,7 @@ def _dispatch(opname, optype=th.float32, cuda=False):
         raise ValueError("Optype %s not recognized %s" % optype)
     op = getattr(ops, opname)
     if not hasattr(ops, opname):
-        raise ValueError("Module has no operator %s" % opname)
+        raise ValueError(f"Module has no operator {opname}")
     return op
 
 def _forward_common(ctx, input_a, input_b):

@@ -8,7 +8,7 @@ import sys
 
 def load_weights(dir):
     if not os.path.isdir(dir):
-        print("Path %s is not a dir" % dir)
+        print(f"Path {dir} is not a dir")
         sys.exit(1)
 
     print("-----------loading weights------------")
@@ -31,9 +31,9 @@ def load_weights(dir):
 
         data = weight.tobytes()
         path = os.path.join(dir, k.replace('.','_'))
-        with open(path + ".data", "wb") as f:
+        with open(f"{path}.data", "wb") as f:
             f.write(data)
-        with open(path + '_shape.data', 'wb') as f:
+        with open(f'{path}_shape.data', 'wb') as f:
             f.write(struct.pack('i', len(weight.shape)))
             for i in list(reversed(range(len(weight.shape)))):
                 f.write(struct.pack('i', weight.shape[i]))

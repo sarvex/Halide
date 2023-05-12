@@ -81,16 +81,12 @@ class HalideBackend(BackendBase):
         return None
 
     @classmethod
-    def supports_device(cls, device):  # type: (Text) -> bool
+    def supports_device(cls, device):    # type: (Text) -> bool
         """
         Checks whether the backend is compiled with support for the requested
         device and that device is available on the machine.
         """
-        if device == 'CPU':
-            return True
-        else:
-            # We don't support anything else at this time
-            return False
+        return device == 'CPU'
 
 
 prepare = HalideBackend.prepare

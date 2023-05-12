@@ -36,14 +36,10 @@ def main():
     # will be suitable for 64-bit linux on x86 with sse4.1.
     brighter.compile_to_file("lesson_11_host", args, "lesson_11_host")
 
-    # We can also compile object files suitable for other cpus and
-    # operating systems. You do this with an optional third argument
-    # to compile_to_file which specifies the target to compile for.
-
-    create_android = True
     create_windows = True
     create_ios = True
 
+    create_android = True
     if create_android:
         # Let's use this to compile a 32-bit arm android version of this code:
         target = hl.Target()
@@ -93,17 +89,15 @@ def main():
                                 1]       # Current version of elf
 
         length = len(arm_32_android_magic)
-        f = open("lesson_11_arm_32_android.o", "rb")
-        try:
-            header_bytes = f.read(length)
-        except:
-            assert False, "Android object file not generated"
-        f.close()
-
+        with open("lesson_11_arm_32_android.o", "rb") as f:
+            try:
+                header_bytes = f.read(length)
+            except:
+                assert False, "Android object file not generated"
         header = list(unpack("B" * length, header_bytes))
-        assert header == arm_32_android_magic, \
-            "Unexpected header bytes in 32-bit arm object file: " + \
-            str([x == y for x, y in zip(header, arm_32_android_magic)])
+        assert (
+            header == arm_32_android_magic
+        ), f"Unexpected header bytes in 32-bit arm object file: {[x == y for x, y in zip(header, arm_32_android_magic)]}"
 
     if create_windows:
         # 64-bit windows object files start with the magic 16-bit value 0x8664
@@ -111,13 +105,11 @@ def main():
         # uint8_t  []
         win_64_magic = [0x64, 0x86]
 
-        f = open("lesson_11_x86_64_windows.obj", "rb")
-        try:
-            header_bytes = f.read(2)
-        except:
-            assert False, "Windows object file not generated"
-        f.close()
-
+        with open("lesson_11_x86_64_windows.obj", "rb") as f:
+            try:
+                header_bytes = f.read(2)
+            except:
+                assert False, "Windows object file not generated"
         header = list(unpack("B" * 2, header_bytes))
         assert header == win_64_magic, "Unexpected header bytes in 64-bit windows object file."
 
@@ -130,13 +122,11 @@ def main():
             12,  # CPU type is ARM
             11,  # CPU subtype is ARMv7s
             1]  # It's a relocatable object file.
-        f = open("lesson_11_arm_32_ios.o", "rb")
-        try:
-            header_bytes = f.read(4 * 4)
-        except:
-            assert False, "ios object file not generated"
-        f.close()
-
+        with open("lesson_11_arm_32_ios.o", "rb") as f:
+            try:
+                header_bytes = f.read(4 * 4)
+            except:
+                assert False, "ios object file not generated"
         header = list(unpack("I" * 4, header_bytes))
         assert header == arm_32_ios_magic, "Unexpected header bytes in 32-bit arm ios object file."
 

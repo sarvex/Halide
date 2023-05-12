@@ -64,8 +64,7 @@ class ComplexPy(hl.Generator):
 
         g.static_compiled_buffer_output[x, y, c] = static_compiled_buffer[x, y, c]
 
-        extra_input = getattr(g, g.extra_input_name, None)
-        if extra_input:
+        if extra_input := getattr(g, g.extra_input_name, None):
             g.extra_output[x, y] = hl.f64(extra_input[x, y, 0] + 1)
         else:
             g.extra_output[x, y] = hl.f64(0)
